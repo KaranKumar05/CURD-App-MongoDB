@@ -1,7 +1,18 @@
 import express from 'express'
 // import { nanoid } from 'nanoid'; // Generates random post ID
 import { customAlphabet } from 'nanoid'; //Custom ID
-const nanoid = customAlphabet('123456789',7); //parameters Id include , Numbers Id Contain
+const nanoid = customAlphabet('123456789', 7); //parameters Id include , Numbers Id Contain
+// Importing client from mongoDb.mjs 
+import { client } from './../../mongoDb.mjs'
+
+// name of Database 
+const db = client.db("CurdDb");
+// we can create as many as we want collection in one Database
+const col = db.collection('posts'); /// Name of Collection
+
+
+
+
 let router = express.Router();
 
 let posts = [
@@ -15,13 +26,13 @@ let posts = [
 
 
 // To Create post url:api/v1/post request:post 
-router.post('/post', (req, res, next) => {
+router.post('/post', async (req, res, next) => {
     if (
         !req.body.title
         || !req.body.text
     ) {
         res.status(403).send(
-        `Required Parameter is missing 
+            `Required Parameter is missing 
         Example:
         {
             title: "Post Title",
@@ -30,19 +41,23 @@ router.post('/post', (req, res, next) => {
         return;
     }
 
-    posts.unshift({
-        id:nanoid(),
+    // inserting data to mongo Database / Creating new post 
+    const insertResponse = await col.insertOne({
+        id: nanoid(),
         title: req.body.title,
         text: req.body.text
-    })
-    // posts.reverse();
-    res.status(200).send('Post Created');
+    });
+    console.log("insertResponse", insertResponse);
+
+    res.send('Post Created');
 })
 
 // To get all post url:api/v1/posts request:get 
-router.get('/posts', (req, res, next) => {
-    console.log('All Posts');
-    res.send(posts);
+router.get('/posts', async (req, res, next) => {
+    const cursor = col.find({});
+    let result = await cursor.toArray();
+    console.log("result", result);
+    res.send(result);
 })
 
 // To get post with iD url:api/v1/post/:postID request:get 
@@ -77,7 +92,7 @@ router.put('/post/:postId', (req, res, next) => {
     for (let i = 0; i < posts.length; i++) {
         if (posts[i].id === req.params.postId) {
 
-            posts[i]= {
+            posts[i] = {
                 id: nanoid(),
                 title: req.body.title,
                 text: req.body.text
@@ -98,7 +113,7 @@ router.delete('/post/:postId', (req, res, next) => {
     for (let i = 0; i < posts.length; i++) {
         if (posts[i].id === req.params.postId) {
 
-            posts.splice(i,1);
+            posts.splice(i, 1);
             res.send(`Post Deleted with Id: ${req.params.postId}`);
             return;
         }
