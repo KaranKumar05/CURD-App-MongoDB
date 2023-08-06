@@ -1,0 +1,120 @@
+*{
+    padding: 0;
+    margin: 0;
+    font-family: 'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+    /* border: 1px solid black; */
+}
+body{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background-color: #242a38;
+}
+#createPostForm > h1{
+    align-self: center;
+    padding: 1em;
+    text-align: center;
+    color: rgb(17, 198, 222);
+    font-weight: bold;
+    
+}
+#createPostForm{
+    padding: 2em;
+    display: flex;
+    gap: 10px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+#createPostForm input{
+    padding: 5px;
+    font-size: 1.3em;
+    width: 100%;
+    border: none;
+    background-color: transparent;
+    border-bottom: 2px solid white;
+}
+#createPostForm input::placeholder{
+    color: white;
+}
+
+#createPostForm > button{
+    cursor: pointer;
+    padding: 5px 25px;
+    font-size: 1.2em;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    background-color: blue;
+    color: white;
+    align-self: flex-start;
+    letter-spacing: 1px;
+}
+.postCard{
+    border: 1px solid black;
+    border-radius: 10px;
+    box-shadow: 0px 0px 10px rgb(255, 255, 255);
+    padding: 1em;
+    width: 90%;
+    background-color: #4e596f;
+    margin: auto;
+}
+.postCard > h3{
+    border-bottom: 1px solid rgb(255, 255, 255);
+    line-height: 20px;
+    color: white;
+}
+.postCard > p{
+    margin-bottom: 10px;
+    line-height: 20px;
+}
+.postCard> button{
+    cursor: pointer;
+    padding: 5px 15px;
+    font-weight: bold;
+    border: none;
+    border-radius: 5px;
+    color: white;
+}
+.postCard .deleteBtn{
+    background-color: red;
+}
+.postCard .editBtn{
+    background-color: green;
+}
+#posts{
+    margin-top: 1em;
+    border-top: 2px solid rgb(255, 255, 255);
+    padding: 1em;
+}
+#editPostFrom{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+#editPostFrom input{
+    padding: 2px;
+    font-size: 1em;
+    width: 89%;
+    border: none;
+    margin-bottom: 10px;
+    background-color: transparent;
+    border-bottom: 2px solid white;
+    color: white;
+}
+#editPostFrom > button{
+    display: none;
+}
+#editPostFrom #saveBtn{
+    display: block;
+    padding: 5px 10px;
+    border: none;
+    background-color: blue;
+    color: white;
+    border-radius: 5px;
+}
+#result{
+    color: white;
+    text-align: center;
+}
+
