@@ -1,9 +1,10 @@
 import express from 'express'
-// import { nanoid } from 'nanoid'; // Generates random post ID
-import { customAlphabet } from 'nanoid'; //Custom ID
-const nanoid = customAlphabet('123456789', 7); //parameters Id include , Numbers Id Contain
+import { nanoid } from 'nanoid'; // Generates random post ID
+// import { customAlphabet } from 'nanoid'; //Custom ID
+// const nanoid = customAlphabet('123456789', 7); //parameters Id include , Numbers Id Contain
 // Importing client from mongoDb.mjs 
 import { client } from './../../mongoDb.mjs'
+import{ObjectId} from 'mongodb'
 
 // name of Database 
 const db = client.db("CurdDb");
@@ -42,39 +43,52 @@ router.post('/post', async (req, res, next) => {
     }
 
     // inserting data to mongo Database / Creating new post 
-    const insertResponse = await col.insertOne({
-        id: nanoid(),
-        title: req.body.title,
-        text: req.body.text
-    });
-    console.log("insertResponse", insertResponse);
+    try {
+        const insertResponse = await col.insertOne({
+            id: nanoid(),
+            title: req.body.title,
+            text: req.body.text
+        });
+        console.log("insertResponse", insertResponse);
 
-    res.send('Post Created');
-})
+        res.send('Post Created')
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error please try again later');
+    }
+});
 
 // To get all post url:api/v1/posts request:get 
 router.get('/posts', async (req, res, next) => {
     const cursor = col.find({});
-    let result = await cursor.toArray();
-    console.log("result", result);
-    res.send(result);
+    try {
+        let result = await cursor.toArray();
+        console.log("result", result);
+        res.send(result)
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error please try again later');
+    }
 })
 
 // To get post with iD url:api/v1/post/:postID request:get 
-router.get('/post/:postId', (req, res, next) => {
+router.get('/post/:postId', async (req, res, next) => {
     if (!req.params.postId) {
         res.status(403).send(`Post Id must be a Number`);
         return;
     }
-    for (let i = 0; i < posts.length; i++) {
-        if (posts[i].id === req.params.postId) {
-            res.send(posts[i]);
-            return;
-        }
-    }
 
-    res.send(`Can't Get Post With Id: ${req.params.postId}`);
-})
+    // _id is an object so we have to convert req.params.postId to object from string 
+    const cursor = col.find({ _id: new ObjectId(req.params.postId) });
+    try {
+        let result = await cursor.toArray();
+        console.log("result", result);
+        res.send(result)
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error please try again later');
+    }
+});
 
 // To Edit post with iD url:api/v1/post/:postID request:Edit 
 router.put('/post/:postId', (req, res, next) => {
