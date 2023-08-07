@@ -4,6 +4,7 @@ import { nanoid } from 'nanoid'; // Generates random post ID
 // const nanoid = customAlphabet('123456789', 7); //parameters Id include , Numbers Id Contain
 // Importing client from mongoDb.mjs 
 import { client } from './../../mongoDb.mjs'
+// Importing objectid form mongo database
 import{ObjectId} from 'mongodb'
 
 // name of Database 
@@ -79,7 +80,7 @@ router.get('/post/:postId', async (req, res, next) => {
     }
 
     // _id is an object so we have to convert req.params.postId to object from string 
-    const cursor = col.find({ _id: new ObjectId(req.params.postId) });
+    const cursor = col.find({ _id: new ObjectId(req.params.postId) });//always new parameter is needed while using ObjectId
     try {
         let result = await cursor.toArray();
         console.log("result", result);
