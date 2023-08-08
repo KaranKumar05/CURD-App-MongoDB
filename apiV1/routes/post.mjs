@@ -5,7 +5,7 @@ import { nanoid } from 'nanoid'; // Generates random post ID
 // Importing client from mongoDb.mjs 
 import { client } from './../../mongoDb.mjs'
 // Importing objectid form mongo database
-import{ObjectId} from 'mongodb'
+import { ObjectId } from 'mongodb'
 
 // name of Database 
 const db = client.db("CurdDb");
@@ -48,7 +48,8 @@ router.post('/post', async (req, res, next) => {
         const insertResponse = await col.insertOne({
             id: nanoid(),
             title: req.body.title,
-            text: req.body.text
+            text: req.body.text,
+            createdOn: new Date()
         });
         console.log("insertResponse", insertResponse);
 
@@ -61,11 +62,14 @@ router.post('/post', async (req, res, next) => {
 
 // To get all post url:api/v1/posts request:get 
 router.get('/posts', async (req, res, next) => {
-    const cursor = col.find({});
+    // -1 = descending, 1 = ascending order 
+    const cursor = col.find({})
+    .sort({_id: -1})// sorting to show new post at top
+    .limit(100); // limiting the post to prevent form crashing or saving Ram and Cpu
     try {
-        let result = await cursor.toArray();
-        console.log("result", result);
-        res.send(result)
+        let results = await cursor.toArray();
+        console.log("results", results);
+        res.send(results);
     } catch (err) {
         console.log(err);
         res.status(500).send('Server Error please try again later');
@@ -74,15 +78,15 @@ router.get('/posts', async (req, res, next) => {
 
 // To get post with iD url:api/v1/post/:postID request:get 
 router.get('/post/:postId', async (req, res, next) => {
-    if (!req.params.postId) {
-        res.status(403).send(`Post Id must be a Number`);
+    // cheaking the id form mongodb otherwise app will be crashed
+    if (!ObjectId.isValid(req.params.postId)) {
+        res.status(403).send(`Post Id is Invalid`);
         return;
     }
 
     // _id is an object so we have to convert req.params.postId to object from string 
-    const cursor = col.find({ _id: new ObjectId(req.params.postId) });//always new parameter is needed while using ObjectId
     try {
-        let result = await cursor.toArray();
+        let result = await col.findOne({ _id: new ObjectId(req.params.postId) });//always new parameter is needed while using ObjectId
         console.log("result", result);
         res.send(result)
     } catch (err) {
@@ -92,11 +96,17 @@ router.get('/post/:postId', async (req, res, next) => {
 });
 
 // To Edit post with iD url:api/v1/post/:postID request:Edit 
-router.put('/post/:postId', (req, res, next) => {
-    if (!req.params.postId
-        || !req.body.title
-        || !req.body.text) {
+router.put('/post/:postId', async (req, res, next) => {
+
+    if (!ObjectId.isValid(req.params.postId)) {
+        res.status(403).send(`Post Id is Invalid`);
+        return;
+    }
+
+    if (!req.body.title
+        && !req.body.text) {
         res.status(403).send(`
+        At least one parameter is Required
         Example:{
             title:"Updated Title"
             text:"Updated text"
@@ -104,36 +114,48 @@ router.put('/post/:postId', (req, res, next) => {
         `);
         return;
     }
-    for (let i = 0; i < posts.length; i++) {
-        if (posts[i].id === req.params.postId) {
+    let dataToUpdate = {};
 
-            posts[i] = {
-                id: nanoid(),
-                title: req.body.title,
-                text: req.body.text
-            }
-            res.send(`Post Updated with Id: ${req.params.postId}`);
-            return;
-        }
+    if (req.body.title) { dataToUpdate.title = req.body.title }
+    if (req.body.text) { dataToUpdate.text = req.body.text }
+
+    try {
+        const updatedResponse = await col.updateOne(
+            {
+                _id: new ObjectId(req.params.postId)
+            },
+            {
+                $set: dataToUpdate
+            });
+        console.log("updatedResponse", updatedResponse);
+
+        res.send('Post Updated')
+    } catch (err) {
+        console.log(err);
+        res.status(500).send('Server Error please try again later');
     }
-
-    res.send(`Can't Find Post With Id: ${req.params.postId}`);
 });
 
 // To Delete post with iD url:api/v1/post/:postID request:delete 
-router.delete('/post/:postId', (req, res, next) => {
-    if (!req.params.postId) {
-        res.status(403).send(`Post Id must be a Number`);
+router.delete('/post/:postId', async (req, res, next) => {
+    if (!ObjectId.isValid(req.params.postId)) {
+        res.status(403).send(`Post Id is Invalid`);
+        return;
     }
-    for (let i = 0; i < posts.length; i++) {
-        if (posts[i].id === req.params.postId) {
 
-            posts.splice(i, 1);
-            res.send(`Post Deleted with Id: ${req.params.postId}`);
-            return;
+    try {
+        const deleteResponse = await col.deleteOne({ _id: new ObjectId(req.params.postId) })
+        console.log("DeletedResponse: ", deleteResponse);
+        // cheaking the count if deleting post for first time deletedCount is 1 or second time it will be 0
+        if(deleteResponse.deletedCount === 0){ // Send response to user to tell post was deleted previously
+            res.send("Post Was Deleted");
+            return
         }
+        res.send("Post Deleted Successfully");
+    } catch (error) {
+        console.log('Error in inserting mongoDb:', error);
+        res.status(500).send('Server Error PLease try again later');
     }
-    res.send(`Can't Find Post With Id: ${req.params.postId}`);
 });
 
 

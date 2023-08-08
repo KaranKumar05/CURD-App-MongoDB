@@ -26,11 +26,12 @@ window.getAllPost = () => {
             let postToPrint = ``
             Response.data.map((eachPost) => {
                 postToPrint += `
-                    <div id="postId-${eachPost.id}" class = "postCard">
+                    <div id="postId-${eachPost._id}" class = "postCard">
                         <h3>${eachPost.title}</h3>
+                        <p>${new Date(eachPost.createdOn)}</p>
                         <p>${eachPost.text}</p>
-                        <button class="deleteBtn" onclick="delPost('${eachPost.id}')">Delete</button>
-                        <button class="editBtn" onclick="editPost('${eachPost.id}','${eachPost.title}','${eachPost.text}')">Edit</button>
+                        <button class="deleteBtn" onclick="delPost('${eachPost._id}')">Delete</button>
+                        <button class="editBtn" onclick="editPost('${eachPost._id}','${eachPost.title}','${eachPost.text}')">Edit</button>
                     </div>
                     <br />`
             })
